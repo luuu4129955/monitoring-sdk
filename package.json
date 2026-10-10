@@ -1,0 +1,52 @@
+{
+  "name": "@perf/monitor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "零运行时依赖、框架无关的前端基础监控 SDK：错误 / 接口 / 性能 / 行为 / 白屏",
+  "type": "module",
+  "main": "./dist/monitor.cjs",
+  "module": "./dist/monitor.esm.js",
+  "browser": "./dist/monitor.iife.js",
+  "unpkg": "./dist/monitor.iife.min.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/monitor.esm.js",
+      "require": "./dist/monitor.cjs",
+      "default": "./dist/monitor.esm.js"
+    },
+    "./src": "./src/index.js",
+    "./adapters/vue": "./src/adapters/vue.js",
+    "./adapters/react": "./src/adapters/react.js",
+    "./adapters/axios": "./src/adapters/axios.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "types",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:vite": "node scripts/build-vite.mjs",
+    "build:webpack": "node scripts/build-webpack.mjs",
+    "build:all": "node scripts/build.mjs && node scripts/build-vite.mjs && node scripts/build-webpack.mjs",
+    "build:demo": "node scripts/build-demo-sourcemap.mjs",
+    "symbolicate": "node scripts/symbolicate.mjs",
+    "size": "node scripts/size-check.mjs",
+    "test": "node --test test/unit/*.test.js",
+    "demo": "node demo/mock-server.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.1"
+  },
+  "peerDependencies": {
+    "rrweb": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "rrweb": {
+      "optional": true
+    }
+  }
+}

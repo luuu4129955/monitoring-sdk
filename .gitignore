@@ -1,0 +1,15 @@
+# 依赖
+node_modules/
+
+# 构建产物：跑 scripts/build.mjs / build-vite.mjs / build-webpack.mjs / build-demo-sourcemap.mjs 生成
+# 不带前导斜杠，所以任何层级的 dist（含 demo/sourcemap/dist）都会被忽略
+dist/
+
+# 本地跑 e2e 产生的报告（正常写在仓库外的 reports/，这里兜个底）
+reports/
+
+# 系统与编辑器
+.DS_Store
+*.log
+.vscode/
+.idea/

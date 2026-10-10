@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>监控 SDK 接入示例（script 直接引入）</title>
+    <style>
+      body {
+        font: 14px/1.7 -apple-system, "PingFang SC", sans-serif;
+        max-width: 860px;
+        margin: 32px auto;
+        padding: 0 16px;
+        color: #222;
+      }
+      h1 { font-size: 20px; }
+      section { border: 1px solid #e3e3e3; border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+      button {
+        font: inherit;
+        margin: 4px 6px 4px 0;
+        padding: 6px 12px;
+        border: 1px solid #d0d0d0;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+      }
+      button:hover { border-color: #888; }
+      code { background: #f5f5f5; padding: 1px 4px; border-radius: 4px; }
+      #log { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; color: #555; }
+    </style>
+  </head>
+  <body>
+    <h1>监控 SDK 接入示例（&lt;script&gt; 直接引入）</h1>
+    <p>
+      本页模拟最传统的接入方式：一个 <code>&lt;script&gt;</code> 引入产物，
+      再挂一个全局配置，业务代码零改动。打开控制台可以看到 SDK 的 debug 日志。
+    </p>
+
+    <section>
+      <strong>接口监控</strong>
+      <div>
+        <button id="btn-ok">正常请求</button>
+        <button id="btn-404">请求不存在的接口（404）</button>
+        <button id="btn-slow">慢接口（2.5s）</button>
+        <button id="btn-biz">业务码失败（200 + code 500）</button>
+        <button id="btn-500">服务器 500</button>
+        <button id="btn-post">带请求体的 POST（500）</button>
+        <button id="btn-xhr">用 XHR 发一次正常请求</button>
+      </div>
+    </section>
+
+    <section>
+      <strong>错误监控</strong>
+      <div>
+        <button id="btn-error">抛同步错误</button>
+        <button id="btn-reject">抛未捕获 Promise</button>
+        <button id="btn-missing-img">加载不存在的图片</button>
+        <button id="btn-try-catch">try/catch 后手动上报</button>
+      </div>
+    </section>
+
+    <section>
+      <strong>行为与自定义</strong>
+      <div>
+        <button id="btn-track">自定义埋点 track()</button>
+        <button id="btn-route">切换路由（pushState）</button>
+        <button id="btn-user">绑定用户 setUser()</button>
+        <button id="btn-flush">立刻上报 flush()</button>
+      </div>
+    </section>
+
+    <section>
+      <strong>采集状态</strong>
+      <div id="log">等待事件…</div>
+    </section>
+
+    <div id="app">
+      <h2>首屏内容</h2>
+      <p>
+        这段文字是有意保留的：白屏检测会在 load 之后采样页面上的元素，
+        这一页有文本、有按钮，如果它误报白屏就说明检测逻辑写错了。
+      </p>
+    </div>
+
+    <script>
+      // 全局配置：只要它在 SDK 之前挂上，就自动初始化，业务代码一行都不用写
+      window.__MONITOR_CONFIG__ = {
+        // 上报地址指向收集器（tools/monitor-collector.mjs）
+        dsn: location.protocol + '//' + location.hostname + ':8398/report',
+        appName: 'monitor-demo',
+        appVersion: '0.1.0',
+        debug: true,
+        // 演示业务码判定：各项目规范不同，所以必须由接入方给这个函数
+        request: {
+          checkBusinessError: function (data) {
+            if (data && data.code !== undefined && data.code !== 0) {
+              return '业务码 ' + data.code + '：' + (data.message || '')
+            }
+            return false
+          }
+        },
+        whiteScreen: { delay: 3000 }
+      }
+    </script>
+    <script src="/dist/monitor.iife.js"></script>
+    <script src="/demo/demo.js"></script>
+  </body>
+</html>

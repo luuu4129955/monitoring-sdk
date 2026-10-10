@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>监控 SDK 接入示例（ESM 直接引源码）</title>
+    <style>
+      body { font: 14px/1.7 -apple-system, "PingFang SC", sans-serif; max-width: 760px; margin: 32px auto; padding: 0 16px; }
+      code { background: #f5f5f5; padding: 1px 4px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>ESM 直接引源码</h1>
+    <p>
+      这一页不依赖任何构建产物，直接 <code>import</code> 了
+      <code>src/index.js</code>——和 web-see 的 demo 一样，
+      改一行 SDK 源码，刷新页面立刻生效。
+    </p>
+    <button id="btn-error">抛一个同步错误</button>
+    <button id="btn-404">请求 404</button>
+    <p>
+      这一页额外注册了<strong>录屏插件</strong>。为了能离线验证，
+      用一个桩对象替代真正的 rrweb——SDK 只要求传进来的对象有
+      <code>record({ emit })</code> 方法，所以链路完全一致。
+      真实项目里换成 <code>import * as rrweb from 'rrweb'</code> 即可。
+    </p>
+    <pre id="log"></pre>
+
+    <script type="module">
+      import { init, defaultPlugins, createRecordPlugin } from '/src/index.js'
+
+      // rrweb 的桩：每 200ms 吐一个假事件，用来验证
+      //「录制 → 出错时切片 → 单独上报 → 用 screenId 与错误关联」这条链路
+      const rrwebStub = {
+        record(options) {
+          let seq = 0
+          const timer = setInterval(() => {
+            options.emit({ type: 3, data: { source: seq++ }, timestamp: Date.now() })
+          }, 200)
+          return () => clearInterval(timer)
+        }
+      }
+
+      const monitor = init(
+        {
+          dsn: location.protocol + '//' + location.hostname + ':8398/report',
+          appName: 'monitor-demo-esm',
+          debug: true
+        },
+        [...defaultPlugins, createRecordPlugin({ rrweb: rrwebStub })]
+      )
+
+      const log = document.getElementById('log')
+      const print = (text) => {
+        log.textContent = `${new Date().toLocaleTimeString()} ${text}\n${log.textContent}`
+      }
+
+      document.getElementById('btn-error').addEventListener('click', () => {
+        setTimeout(() => {
+          throw new Error('esm-demo-error')
+        }, 0)
+        print('已抛出错误')
+      })
+
+      document.getElementById('btn-404').addEventListener('click', () => {
+        fetch('/api/does-not-exist').catch(() => {})
+        print('已发起 404 请求')
+      })
+
+      print(`SDK 已就绪：${monitor.config.appName}`)
+      const record = monitor.getPlugin('record')
+      print(`录屏已启动，screenId = ${record && record.api ? record.api.screenId : '未启用'}`)
+    </script>
+  </body>
+</html>
